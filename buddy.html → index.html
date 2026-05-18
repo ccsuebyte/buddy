@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#C4784E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Buddy">
+<link rel="apple-touch-icon" href="icon-192.png">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">
 <title>buddy.</title>
@@ -168,6 +173,38 @@ html,body{font-family:var(--font);background:var(--cream);color:var(--ink);max-w
 .masked{filter:blur(7px);user-select:none}
 </style>
 </head>
+<div id="lockScreen" style="
+position:fixed;
+inset:0;
+background:#F7F3EE;
+display:flex;
+align-items:center;
+justify-content:center;
+flex-direction:column;
+z-index:9999;
+">
+
+<h2>Unlock Buddy</h2>
+<button onclick="unlockApp()">Use Face ID</button>
+
+</div>
+
+<script>
+async function unlockApp() {
+  try {
+    await navigator.credentials.get({
+      publicKey: {
+        challenge: new Uint8Array(32),
+        timeout: 60000,
+        userVerification: "required"
+      }
+    });
+    document.getElementById("lockScreen").style.display = "none";
+  } catch (err) {
+    alert("Authentication failed");
+  }
+}
+</script>
 <body>
 
 <div class="nav">
@@ -691,6 +728,51 @@ function removeIncSrc(i){D.incSources.splice(i,1);lsSave();renderPlanSubs();goSu
 lsLoad();populateAcctSelects();
 const n=new Date();document.getElementById('hdr-date').textContent=MONTHS[n.getMonth()]+' '+n.getDate()+', '+n.getFullYear();
 renderHome();
+</script>
+  <button onclick="exportData()">Backup Data</button>
+<input type="file" onchange="importData(event)">
+<script>
+
+function exportData(){
+  const data = localStorage.getItem('buddy4');
+  const blob = new Blob([data], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'buddy-backup.json';
+  a.click();
+  localStorage.setItem('lastBackup', Date.now());
+}
+
+function importData(event){
+  const file = event.target.files[0];
+  const reader = new FileReader();
+  reader.onload = function(){
+    localStorage.setItem('buddy4', reader.result);
+    location.reload();
+  }
+  reader.readAsText(file);
+}
+
+</script>
+  <script>
+function checkBackupReminder(){
+  const lastBackup = localStorage.getItem('lastBackup');
+  const now = Date.now();
+  const week = 7 * 24 * 60 * 60 * 1000;
+
+  if(!lastBackup || now - lastBackup > week){
+    if(confirm("Backup your Buddy data?")){
+      exportData();
+    }
+  }
+}
+
+window.addEventListener("load", checkBackupReminder);
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
 </script>
 </body>
 </html>
