@@ -173,38 +173,7 @@ html,body{font-family:var(--font);background:var(--cream);color:var(--ink);max-w
 .masked{filter:blur(7px);user-select:none}
 </style>
 </head>
-<div id="lockScreen" style="
-position:fixed;
-inset:0;
-background:#F7F3EE;
-display:flex;
-align-items:center;
-justify-content:center;
-flex-direction:column;
-z-index:9999;
-">
 
-<h2>Unlock Buddy</h2>
-<button onclick="unlockApp()">Use Face ID</button>
-
-</div>
-
-<script>
-async function unlockApp() {
-  try {
-    await navigator.credentials.get({
-      publicKey: {
-        challenge: new Uint8Array(32),
-        timeout: 60000,
-        userVerification: "required"
-      }
-    });
-    document.getElementById("lockScreen").style.display = "none";
-  } catch (err) {
-    alert("Authentication failed");
-  }
-}
-</script>
 <body>
 
 <div class="nav">
