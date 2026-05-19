@@ -1,15 +1,22 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>buddy.</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="manifest" href="./manifest.json">
+
+<link rel="manifest" href="manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="buddy.">
 <meta name="theme-color" content="#C4784E">
-<title>buddy.</title>
+
 <style>
+/* Force system fallback to Sans-Serif if network font takes a second to catch up */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
   --cream:#F7F3EE;--white:#FDFAF7;--parchment:#EDE6DC;
@@ -17,7 +24,7 @@
   --sage:#7A9E7E;--sage-pale:#D4E2D3;--dusty:#9BAF9A;
   --ink:#1E1209;--ink2:#5C4A38;--ink3:#9B866F;
   --red:#C05C5C;--green:#5A9E6A;--gold:#B8860B;
-  --font:'Geist',system-ui,sans-serif;
+  --font:'Geist', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 html,body{font-family:var(--font);background:var(--cream);color:var(--ink);max-width:430px;margin:0 auto;min-height:100vh;font-size:15px}
 .nav{background:var(--white);border-bottom:1px solid var(--parchment);padding:12px 18px 0;position:sticky;top:0;z-index:50}
