@@ -1,19 +1,39 @@
-const CACHE = "buddy-cache-v1";
+const CACHE_NAME = "buddy-v2";
 
-self.addEventListener("install", e => {
-  e.waitUntil(
-    caches.open(CACHE).then(cache =>
-      cache.addAll([
-        "./",
-        "./index.html",
-        "./manifest.json"
-      ])
-    )
+const urlsToCache = [
+  "./",
+  "./index.html"
+];
+
+self.addEventListener("install", event => {
+
+  self.skipWaiting();
+
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(urlsToCache))
   );
+
 });
 
-self.addEventListener("fetch", e => {
-  e.respondWith(
-    caches.match(e.request).then(res => res || fetch(e.request))
+self.addEventListener("activate", event => {
+
+  event.waitUntil(
+    caches.keys().then(keys => {
+      return Promise.all(
+        keys.filter(key => key !== CACHE_NAME)
+        .map(key => caches.delete(key))
+      );
+    })
   );
+
+});
+
+self.addEventListener("fetch", event => {
+
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => response || fetch(event.request))
+  );
+
 });
