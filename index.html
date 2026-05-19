@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
 
-<link rel="manifest" href="manifest.json">
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Buddy</title>
+
+<link rel="manifest" href="manifest.json">
 
 <style>
 
@@ -19,7 +19,7 @@ background:#f5f5f7;
 }
 
 .container{
-max-width:600px;
+max-width:650px;
 margin:auto;
 }
 
@@ -31,7 +31,7 @@ margin-bottom:16px;
 box-shadow:0 2px 10px rgba(0,0,0,.08);
 }
 
-input,textarea,button{
+input,textarea,select,button{
 width:100%;
 padding:12px;
 margin-top:8px;
@@ -60,6 +60,15 @@ font-size:12px;
 opacity:.6;
 }
 
+.tag{
+display:inline-block;
+padding:4px 8px;
+font-size:11px;
+border-radius:8px;
+background:#eee;
+margin-top:4px;
+}
+
 .row{
 display:flex;
 gap:8px;
@@ -83,13 +92,28 @@ padding:8px;
 <div class="card">
 
 <h2>Buddy Log</h2>
-<div class="small">Data stored privately on this device</div>
 
 <input id="title" placeholder="Title">
+
+<select id="tag">
+
+<option value="walk">🐕 Walk</option>
+<option value="food">🍗 Food</option>
+<option value="meds">💊 Meds</option>
+<option value="potty">💩 Potty</option>
+<option value="other">Other</option>
+
+</select>
 
 <textarea id="notes" placeholder="Notes"></textarea>
 
 <button onclick="addEntry()">Save Entry</button>
+
+</div>
+
+<div class="card">
+
+<input id="search" placeholder="Search entries" oninput="render()">
 
 </div>
 
@@ -124,10 +148,19 @@ localStorage.setItem("buddy_entries",JSON.stringify(entries))
 function render(){
 
 const container=document.getElementById("entries")
+const search=document.getElementById("search").value.toLowerCase()
 
 container.innerHTML=""
 
-entries.slice().reverse().forEach((e,index)=>{
+entries
+.slice()
+.reverse()
+.filter(e =>
+e.title.toLowerCase().includes(search) ||
+e.notes.toLowerCase().includes(search) ||
+e.tag.toLowerCase().includes(search)
+)
+.forEach((e,index)=>{
 
 const div=document.createElement("div")
 
@@ -140,6 +173,8 @@ div.innerHTML=`
 <div class="small">
 ${new Date(e.date).toLocaleString()}
 </div>
+
+<div class="tag">${e.tag}</div>
 
 <div>${e.notes}</div>
 
@@ -163,13 +198,17 @@ function addEntry(){
 
 const title=document.getElementById("title").value
 const notes=document.getElementById("notes").value
+const tag=document.getElementById("tag").value
 
 if(!title)return
 
 entries.push({
+
 title,
 notes,
+tag,
 date:new Date().toISOString()
+
 })
 
 save()
@@ -242,13 +281,44 @@ reader.readAsText(file)
 
 }
 
+/* AUTO DAILY BACKUP */
+
+function autoBackup(){
+
+const today = new Date().toISOString().slice(0,10)
+
+const lastBackup = localStorage.getItem("buddy_last_backup")
+
+if(lastBackup === today) return
+if(entries.length === 0) return
+
+const blob = new Blob([JSON.stringify(entries)],{type:"application/json"})
+const url = URL.createObjectURL(blob)
+
+const a=document.createElement("a")
+
+a.href=url
+a.download="buddy_backup_"+today+".json"
+
+a.click()
+
+localStorage.setItem("buddy_last_backup",today)
+
+}
+
+setTimeout(autoBackup,3000)
+
 render()
 
-</script>
+/* SERVICE WORKER */
 
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js');
+if('serviceWorker' in navigator){
+
+navigator.serviceWorker.register('sw.js')
+
 }
+
+</script>
 
 </body>
 </html>
