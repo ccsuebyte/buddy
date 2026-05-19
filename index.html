@@ -3,9 +3,9 @@
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Buddy Tracker</title>
+<title>Buddy</title>
 
 <style>
 
@@ -23,7 +23,7 @@ margin:auto;
 
 .card{
 background:white;
-border-radius:18px;
+border-radius:16px;
 padding:20px;
 margin-bottom:16px;
 box-shadow:0 2px 10px rgba(0,0,0,.08);
@@ -46,7 +46,7 @@ cursor:pointer;
 }
 
 .entry{
-margin-top:10px;
+margin-top:12px;
 padding:14px;
 border-radius:12px;
 border:1px solid #eee;
@@ -113,19 +113,11 @@ padding:8px;
 
 <script>
 
-/* --------------------------
-DATABASE
--------------------------- */
-
 let entries = JSON.parse(localStorage.getItem("buddy_entries") || "[]")
 
 function save(){
 localStorage.setItem("buddy_entries",JSON.stringify(entries))
 }
-
-/* --------------------------
-RENDER
--------------------------- */
 
 function render(){
 
@@ -165,24 +157,17 @@ container.appendChild(div)
 
 }
 
-/* --------------------------
-ADD
--------------------------- */
-
 function addEntry(){
 
 const title=document.getElementById("title").value
-
 const notes=document.getElementById("notes").value
 
 if(!title)return
 
 entries.push({
-
 title,
 notes,
 date:new Date().toISOString()
-
 })
 
 save()
@@ -194,10 +179,6 @@ render()
 
 }
 
-/* --------------------------
-DELETE
--------------------------- */
-
 function deleteEntry(i){
 
 entries.splice(i,1)
@@ -208,16 +189,11 @@ render()
 
 }
 
-/* --------------------------
-EDIT
--------------------------- */
-
 function editEntry(i){
 
 let entry=entries[i]
 
 const newTitle=prompt("Edit title",entry.title)
-
 if(newTitle===null)return
 
 const newNotes=prompt("Edit notes",entry.notes)
@@ -231,35 +207,21 @@ render()
 
 }
 
-/* --------------------------
-EXPORT BACKUP
--------------------------- */
-
 function exportData(){
 
-const data=JSON.stringify(entries)
-
-const blob=new Blob([data],{type:"application/json"})
-
+const blob=new Blob([JSON.stringify(entries)],{type:"application/json"})
 const url=URL.createObjectURL(blob)
 
 const a=document.createElement("a")
-
 a.href=url
 a.download="buddy_backup.json"
-
 a.click()
 
 }
 
-/* --------------------------
-IMPORT BACKUP
--------------------------- */
-
 function importData(e){
 
 const file=e.target.files[0]
-
 if(!file)return
 
 const reader=new FileReader()
@@ -279,92 +241,6 @@ reader.readAsText(file)
 }
 
 render()
-
-/* --------------------------
-INLINE MANIFEST
--------------------------- */
-
-const manifest={
-
-name:"Buddy Tracker",
-short_name:"Buddy",
-display:"standalone",
-start_url:".",
-background_color:"#f5f5f7",
-theme_color:"#000000",
-
-icons:[{
-
-src:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAQAAAAAYLlVAAAAKUlEQVR4Ae3BAQ0AAADCoPdPbQ8HFAAAAAAAAAAAAAAAAAAAAAAAAADwG4wAAc5XqY8AAAAASUVORK5CYII=",
-
-sizes:"192x192",
-type:"image/png"
-
-}]
-
-}
-
-const manifestBlob=new Blob([JSON.stringify(manifest)],{type:"application/json"})
-
-const manifestURL=URL.createObjectURL(manifestBlob)
-
-const manifestLink=document.createElement("link")
-
-manifestLink.rel="manifest"
-
-manifestLink.href=manifestURL
-
-document.head.appendChild(manifestLink)
-
-/* --------------------------
-OFFLINE SERVICE WORKER
--------------------------- */
-
-if("serviceWorker" in navigator){
-
-const sw=`
-
-const CACHE="buddy-cache-v1"
-
-self.addEventListener("install",e=>{
-
-self.skipWaiting()
-
-})
-
-self.addEventListener("fetch",event=>{
-
-event.respondWith(
-
-caches.open(CACHE).then(cache=>
-
-cache.match(event.request).then(res=>
-
-res||fetch(event.request).then(fetchRes=>{
-
-cache.put(event.request,fetchRes.clone())
-
-return fetchRes
-
-})
-
-)
-
-)
-
-)
-
-})
-
-`
-
-const blob=new Blob([sw],{type:"text/javascript"})
-
-const swURL=URL.createObjectURL(blob)
-
-navigator.serviceWorker.register(swURL)
-
-}
 
 </script>
 
