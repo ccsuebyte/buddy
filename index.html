@@ -660,13 +660,13 @@ window.addEventListener('DOMContentLoaded', () => {
   renderPlanSubs();
   
   // RECONSTRUCTED & SECURED GITHUB PAGES SUB-DIRECTORY PWA SERVICE WORKER HOOK
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js')
-        .then(reg => console.log('ServiceWorker tracking online scope:', reg.scope))
-        .catch(err => console.warn('ServiceWorker offline lifecycle deferred:', err));
-    });
-  }
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js', { scope: './' })
+      .then(reg => console.log('ServiceWorker online at scope:', reg.scope))
+      .catch(err => console.warn('ServiceWorker error:', err));
+  });
+}
 });
 </script>
 </body>
