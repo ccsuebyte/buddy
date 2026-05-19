@@ -1,67 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>buddy.</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Buddy</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#f7f7f7">
 
 <style>
 body{
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    margin:0;
-    padding:20px;
-    background:#f6f6f6;
+font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+margin:0;
+background:#f7f7f7;
+padding:20px;
 }
+
 .container{
-    max-width:600px;
-    margin:auto;
+max-width:500px;
+margin:auto;
 }
+
 .card{
-    background:white;
-    border-radius:16px;
-    padding:20px;
-    margin-bottom:16px;
-    box-shadow:0 2px 8px rgba(0,0,0,0.08);
+background:white;
+padding:20px;
+border-radius:16px;
+margin-bottom:20px;
+box-shadow:0 4px 12px rgba(0,0,0,0.08);
 }
+
 input,textarea,button{
-    width:100%;
-    padding:10px;
-    margin-top:8px;
-    border-radius:10px;
-    border:1px solid #ddd;
-    font-size:14px;
+width:100%;
+padding:12px;
+margin-top:10px;
+border-radius:10px;
+border:1px solid #ddd;
+font-size:16px;
 }
+
 button{
-    background:black;
-    color:white;
-    border:none;
-    cursor:pointer;
+background:black;
+color:white;
+border:none;
 }
+
 .entry{
-    margin-top:12px;
-    padding:12px;
-    border-radius:12px;
-    background:#fafafa;
-    border:1px solid #eee;
-}
-.small{
-    font-size:12px;
-    opacity:0.6;
+border-bottom:1px solid #eee;
+padding:10px 0;
 }
 
-.row{
-display:flex;
-gap:6px;
-margin-top:8px;
+.entry:last-child{
+border:none;
 }
-
-.row button{
-flex:1;
-font-size:12px;
-padding:6px;
-}
-
 </style>
+
 </head>
 
 <body>
@@ -69,58 +62,61 @@ padding:6px;
 <div class="container">
 
 <div class="card">
-<h2>Buddy Log</h2>
-<div class="small">Data is stored privately on your device using local storage.</div>
-
-<input id="title" placeholder="Title" />
-<textarea id="notes" placeholder="Notes"></textarea>
-<button onclick="addEntry()">Save Entry</button>
+<h2>Add Entry</h2>
+<input id="title" placeholder="Title">
+<textarea id="content" placeholder="Write something..."></textarea>
+<button onclick="addEntry()">Save</button>
 </div>
 
 <div class="card">
-<h3>Entries</h3>
+<h2>Entries</h2>
 <div id="entries"></div>
-</div>
-
-<div class="card">
-<h3>Backup</h3>
-<button onclick="exportData()">Export Backup</button>
-<input type="file" onchange="importData(event)">
 </div>
 
 </div>
 
 <script>
 
-let entries = JSON.parse(localStorage.getItem("buddy_entries") || "[]")
+let entries = JSON.parse(localStorage.getItem("entries") || "[]")
 
-function save(){
-localStorage.setItem("buddy_entries",JSON.stringify(entries))
+function saveEntries(){
+localStorage.setItem("entries", JSON.stringify(entries))
+renderEntries()
 }
 
-/* Render */
+function addEntry(){
 
-function render(){
+const title = document.getElementById("title").value
+const content = document.getElementById("content").value
 
-const container = document.getElementById("entries")
+if(!title && !content) return
 
-container.innerHTML = ""
+entries.unshift({
+title,
+content,
+date:new Date().toLocaleString()
+})
 
-entries.slice().reverse().forEach((e,index)=>{
+document.getElementById("title").value=""
+document.getElementById("content").value=""
 
-const div = document.createElement("div")
+saveEntries()
+}
 
+function renderEntries(){
+
+const container=document.getElementById("entries")
+container.innerHTML=""
+
+entries.forEach(e=>{
+
+const div=document.createElement("div")
 div.className="entry"
 
-div.innerHTML = `
+div.innerHTML=`
 <strong>${e.title}</strong>
-<div class="small">${new Date(e.date).toLocaleString()}</div>
-<div>${e.notes}</div>
-
-<div class="row">
-<button onclick="editEntry(${index})">Edit</button>
-<button onclick="deleteEntry(${index})">Delete</button>
-</div>
+<div>${e.content}</div>
+<small>${e.date}</small>
 `
 
 container.appendChild(div)
@@ -129,187 +125,14 @@ container.appendChild(div)
 
 }
 
-/* Add Entry */
+renderEntries()
 
-function addEntry(){
+</script>
 
-const title = document.getElementById("title").value
-const notes = document.getElementById("notes").value
-
-if(!title) return
-
-const entry={
-title,
-notes,
-date:new Date().toISOString()
+<script>
+if ("serviceWorker" in navigator) {
+navigator.serviceWorker.register("sw.js")
 }
-
-entries.push(entry)
-
-save()
-
-document.getElementById("title").value=""
-document.getElementById("notes").value=""
-
-render()
-
-}
-
-/* Delete */
-
-function deleteEntry(i){
-
-entries.splice(i,1)
-
-save()
-
-render()
-
-}
-
-/* Edit */
-
-function editEntry(i){
-
-let entry=entries[i]
-
-const newTitle = prompt("Edit title",entry.title)
-
-if(newTitle===null) return
-
-const newNotes = prompt("Edit notes",entry.notes)
-
-entry.title=newTitle
-entry.notes=newNotes
-
-save()
-
-render()
-
-}
-
-/* Export Backup */
-
-function exportData(){
-
-const blob = new Blob([JSON.stringify(entries)],{type:"application/json"})
-const url = URL.createObjectURL(blob)
-
-const a=document.createElement("a")
-a.href=url
-a.download="buddy_backup.json"
-a.click()
-
-}
-
-/* Import Backup */
-
-function importData(e){
-
-const file=e.target.files[0]
-
-if(!file) return
-
-const reader=new FileReader()
-
-reader.onload=function(event){
-
-entries=JSON.parse(event.target.result)
-
-save()
-
-render()
-
-}
-
-reader.readAsText(file)
-
-}
-
-/* Auto Daily Backup */
-
-function autoBackup(){
-
-const today=new Date().toISOString().slice(0,10)
-
-const lastBackup=localStorage.getItem("buddy_last_backup")
-
-if(lastBackup===today) return
-if(entries.length===0) return
-
-const blob=new Blob([JSON.stringify(entries)],{type:"application/json"})
-const url=URL.createObjectURL(blob)
-
-const a=document.createElement("a")
-
-a.href=url
-a.download="buddy_backup_"+today+".json"
-
-a.click()
-
-localStorage.setItem("buddy_last_backup",today)
-
-}
-
-setTimeout(autoBackup,3000)
-
-render()
-
-/* Manifest */
-
-const manifest = {
-  name: "Buddy Tracker",
-  short_name: "Buddy",
-  start_url: ".",
-  display: "standalone",
-  background_color: "#f6f6f6",
-  theme_color: "#000000",
-  icons: [{
-      src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAQAAAAAYLlVAAAAKUlEQVR4Ae3BAQ0AAADCoPdPbQ8HFAAAAAAAAAAAAAAAAAAAAAAAAADwG4wAAc5XqY8AAAAASUVORK5CYII=",
-      sizes: "192x192",
-      type: "image/png"
-  }]
-}
-
-const manifestBlob = new Blob([JSON.stringify(manifest)],{type:"application/json"})
-const manifestURL = URL.createObjectURL(manifestBlob)
-const manifestLink = document.createElement("link")
-manifestLink.rel="manifest"
-manifestLink.href=manifestURL
-document.head.appendChild(manifestLink)
-
-/* Service Worker */
-
-if("serviceWorker" in navigator){
-
-const swCode=`
-const CACHE="buddy-cache-v2";
-
-self.addEventListener("install",e=>{
- self.skipWaiting();
-});
-
-self.addEventListener("fetch",event=>{
- event.respondWith(
-  caches.open(CACHE).then(cache=>
-   cache.match(event.request).then(res=>
-    res||fetch(event.request).then(fetchRes=>{
-     cache.put(event.request,fetchRes.clone());
-     return fetchRes;
-    })
-   )
-  )
- );
-});
-`
-
-const swBlob=new Blob([swCode],{type:"text/javascript"})
-const swURL=URL.createObjectURL(swBlob)
-
-navigator.serviceWorker.register(swURL)
-
-}
-
 </script>
 
 </body>
